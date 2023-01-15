@@ -62,7 +62,7 @@ export default function CreateProject() {
                 >
                     <>
                         <Editor
-                            // apiKey=''
+                            apiKey='9stlvqkpgdrjlmf66aj4njd1xxripg9pchrn5e520ozhwwvv'
                             onInit={(evt, editor) => editorRef.current = editor}
                             initialValue=""
                             init={{
