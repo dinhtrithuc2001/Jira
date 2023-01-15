@@ -3,8 +3,9 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import { Provider } from 'react-redux';
-import {store} from './redux/reducers/rootReducer'
+import {store} from './redux/configStore'
 import 'antd/dist/reset.css';
+import '../src/assets/sass/main.scss'
 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -14,3 +15,4 @@ root.render(
     <App />
   </Provider>
 );
+  

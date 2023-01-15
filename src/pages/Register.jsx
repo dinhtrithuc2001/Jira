@@ -1,103 +1,90 @@
 import React from 'react'
-import { Button, Input, Form } from 'antd'
+import { Button, Input, Form, message } from 'antd'
 import { UserOutlined, LockOutlined, PhoneOutlined, MailOutlined } from '@ant-design/icons'
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { withFormik } from 'formik';
+import * as Yup from 'yup'
+import { CallApiRegister } from '../services/UserService';
+import {history} from '../utils/history'
 
+let timeout = null
 
-export default function Register() {
+const Register = (props) => {
 
-    const onFinishFailed = (errorInfo) => {
-        console.log('Failed:', errorInfo);
-    };
-    const onFinish = (values) => {
-        console.log('Success:', values);
-    };
+    const {
+        handleSubmit,
+        handleChange,
+        errors
+    } = props
+
     return (
         <div className='pt-5'>
             <h2 className='text-center font-bold text-2xl uppercase'>Register Jira</h2>
-            <Form
-                
-                onFinish={onFinish}
-                onFinishFailed={onFinishFailed}
-                autoComplete="off"
-            >
-                <Form.Item
-                    name="email"
-                    rules={[
-                        {
-                            required: true,
-                            message: 'Please input your email !',
-                        },
-                        {
-                            pattern: /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-                            message: 'Please enter a valid email'
-                        }
-                    ]}
-                >
-                    <Input size="large" placeholder="email" prefix={<MailOutlined />} />
+            <Form onSubmitCapture={handleSubmit} autoComplete="off">
+                <div className='text-red-500'>{errors.email}</div>
+                <Form.Item name="email">
+                    <Input onChange={handleChange} size="large" placeholder="email" prefix={<MailOutlined />} />
                 </Form.Item>
-
-                <Form.Item
-                    name="password"
-                    rules={[
-                        {
-                            required: true,
-                            message: 'Please input your password !',
-                        },
-                        {
-                            min: 6,
-                            message: 'Please enter password minimum 6 characters !',
-                        },
-                       
-                    ]}
-                >
-                    <Input.Password size="large" placeholder="password" prefix={<LockOutlined />} />
+                <div className='text-red-500'>{errors.password}</div>
+                <Form.Item name="password">
+                    <Input.Password onChange={handleChange} size="large" placeholder="password" prefix={<LockOutlined />} />
                 </Form.Item>
-
-                <Form.Item
-                    name="name"
-                    rules={[
-                        {
-                            required: true,
-                            message: 'Please input your name !',
-                        },
-                    ]}
-                >
-                    <Input size="large" placeholder="name" prefix={<UserOutlined />} />
+                <div className='text-red-500'>{errors.name}</div>
+                <Form.Item name="name">
+                    <Input size="large" onChange={handleChange} placeholder="name" prefix={<UserOutlined />} />
                 </Form.Item>
-
-                <Form.Item
-                    name="phoneNumber"
-                    rules={[
-                        {   
-                            required: true,
-                            message: 'Please input your phone number !',
-                        },
-                        {
-                            min: 10,
-                            message: 'Please enter phone number minimum 10 characters !',
-                        },
-                        {
-                            max: 11,
-                            message: 'Please enter phone number maximum 11 characters !',
-                        },
-                    ]}
-                >
-                    <Input type='number' size="large" placeholder="phone number" prefix={<PhoneOutlined />} />
+                <div className='text-red-500'>{errors.phoneNumber}</div>
+                <Form.Item name="phoneNumber">
+                    <Input type='number' onChange={handleChange} size="large" placeholder="phone number" prefix={<PhoneOutlined />} />
                 </Form.Item>
-
-
                 <Form.Item>
                     <Button className='w-full' ghost type="primary" htmlType="submit">
                         Sign up
                     </Button>
                 </Form.Item>
-
                 <div className='text-center'>
-                Have an account?
-                    <NavLink to='/login'><span className='font-medium' style={{color: '#5295f6'}}> Log in</span></NavLink>
+                    Have an account?
+                    <NavLink to='/login'><span className='font-medium' style={{ color: '#5295f6' }}> Log in</span></NavLink>
                 </div>
             </Form>
         </div>
     )
 }
+
+const callApiRegisterJira = async(values) => {
+    try {
+        await CallApiRegister(values)
+        setTimeout(()=>{
+            message.success('Register Success !!')
+        },200)
+        history.push('/login')
+    } catch (error) {
+        message.error(`${error.response.data.message}`)
+    }
+}
+
+const RegisterJiraWithFormik = withFormik({
+
+    mapPropsToValues: () => ({
+        email: '',
+        password: '',
+        name: '',
+        phoneNumber: '',
+    }),
+    handleSubmit: (values, {setSubmitting }) => {
+        if(timeout !== null){
+            clearTimeout(timeout)
+        }
+        timeout = setTimeout(()=>{
+            callApiRegisterJira(values)
+        },1000)
+    },
+    validationSchema: Yup.object().shape({
+        email: Yup.string().required('Email is required!').email('Email is invalid!'),
+        password: Yup.string().required('Password is required!').min(6, 'Please enter password minimum 6 characters'),
+        name: Yup.string().required('Name is required!'),
+        phoneNumber: Yup.string().required('Phone number is required!')
+    })
+})(Register)
+
+export default RegisterJiraWithFormik
